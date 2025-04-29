@@ -9,7 +9,7 @@ import {
 } from "@radix-ui/react-icons";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { cn, copyToClipboard } from "./utils/common";
-import { Separator } from "./components/ui/separator";
+import { Avatar, AvatarFallback } from "./components/ui/avatar";
 
 dayjs.extend(relativeTime);
 
@@ -52,8 +52,7 @@ const MessageItem = ({
 }) => {
   const [copyLoading, setCopyLoading] = React.useState(false);
   const isPending = message.status === "pending";
-  const showMessageAcitions =
-    !isPending && message.isRecv && !message.isInitial;
+  const showMessageActions = !isPending && message.isRecv && !message.isInitial;
 
   const copyAnswer = () => {
     copyToClipboard(message.content);
@@ -66,40 +65,47 @@ const MessageItem = ({
   return (
     <div
       id={`msg_${message.id}`}
-      style={{ maxWidth: "calc(100vw - 1.5rem)" }}
-      className={cn("mb-5 flex flex-col", reverse && "items-end")}
+      className={cn(
+        "px-4 py-6 group",
+        reverse ? "user-message" : "assistant-message"
+      )}
     >
-      <div className="max-w-[90%] w-fit overflow-hidden">
-        <div
-          className={cn(
-            "px-3 py-4 mt-1 rounded-md w-full break-all markdown-body",
-            reverse
-              ? "rounded-tr-none bg-[#6f44fc]"
-              : "rounded-tl-none bg-zinc-200/50"
-          )}
-        >
-          <MarkdownPreview
-            wrapperElement={{
-              "data-color-mode": "light",
-            }}
-            className={reverse ? "bg-[#6f44fc] text-white" : "bg-[#f1f1f3]"}
-            components={{
-              a: ({ children, ...props }) => (
-                <a {...props} target="_blank">
-                  {children}
-                </a>
-              ),
-            }}
-            source={encodeSpacesInMarkdownLinks(message.content)}
-          />
+      <div className="chat-container flex gap-4">
+        {!reverse && (
+          <div className="flex-shrink-0">
+            <Avatar className="h-8 w-8 assistant-avatar">
+              <AvatarFallback>A</AvatarFallback>
+            </Avatar>
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className={cn(
+            "prose prose-slate max-w-none",
+            isPending && "opacity-70"
+          )}>
+            <MarkdownPreview
+              wrapperElement={{
+                "data-color-mode": "light",
+              }}
+              className="bg-transparent"
+              components={{
+                a: ({ children, ...props }) => (
+                  <a {...props} target="_blank" className="text-blue-600 hover:underline">
+                    {children}
+                  </a>
+                ),
+              }}
+              source={encodeSpacesInMarkdownLinks(message.content)}
+            />
+          </div>
 
           {!!message.links.length && (
-            <>
-              <Separator className="bg-gray-300 my-2" />
-              <div className="flex flex-col space-y-1">
+            <div className="mt-4 border-t border-gray-200 pt-3">
+              <p className="text-sm text-gray-500 mb-2">Source links:</p>
+              <div className="flex flex-wrap gap-2">
                 {message.links.map((link) => (
                   <a
-                    className="px-2 py-[2px] border rounded border-gray-300 cursor-pointer truncate inline-block max-w-[90%] w-fit"
+                    className="px-3 py-1.5 border rounded-full text-sm border-gray-300 bg-white hover:bg-gray-50 cursor-pointer truncate max-w-full"
                     title={link}
                     href={link}
                     key={link}
@@ -109,43 +115,52 @@ const MessageItem = ({
                   </a>
                 ))}
               </div>
-            </>
+            </div>
           )}
+
           {isPending && (
-            <div className="loading">
+            <div className="loading mt-2">
               <span></span>
               <span></span>
               <span></span>
             </div>
           )}
 
-          {showMessageAcitions && (
-            <div className="flex space-x-3 mt-2">
+          {showMessageActions && (
+            <div className="flex space-x-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
               {copyLoading ? (
-                <CheckIcon className="text-gray-800" />
+                <button className="flex items-center text-xs text-gray-600 px-2 py-1 rounded hover:bg-gray-100">
+                  <CheckIcon className="mr-1 h-3 w-3" />
+                  Copied!
+                </button>
               ) : (
-                <ClipboardCopyIcon
-                  className="text-gray-800 hover:text-gray-400 cursor-pointer"
+                <button 
+                  className="flex items-center text-xs text-gray-600 px-2 py-1 rounded hover:bg-gray-100"
                   onClick={copyAnswer}
-                />
+                >
+                  <ClipboardCopyIcon className="mr-1 h-3 w-3" />
+                  Copy
+                </button>
               )}
 
-              <UpdateIcon
-                className="text-gray-800 hover:text-gray-400 cursor-pointer"
+              <button 
+                className="flex items-center text-xs text-gray-600 px-2 py-1 rounded hover:bg-gray-100"
                 onClick={() => regenerateAnswer(message.id)}
-              />
+              >
+                <UpdateIcon className="mr-1 h-3 w-3" />
+                Regenerate response
+              </button>
             </div>
           )}
         </div>
-      </div>
-      <p
-        className={cn(
-          "text-sm text-muted-foreground mt-1",
-          reverse && "text-right"
+        {reverse && (
+          <div className="flex-shrink-0">
+            <Avatar className="h-8 w-8 user-avatar">
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+          </div>
         )}
-      >
-        {dayjs(message.timestamp).fromNow()}
-      </p>
+      </div>
     </div>
   );
 };
@@ -158,15 +173,17 @@ const MessageList = ({
   regenerateAnswer: (id: string) => void;
 }) => {
   return (
-    <ScrollArea className="flex-1 px-3">
-      {messages.map((message) => (
-        <MessageItem
-          message={message}
-          key={message.id}
-          reverse={!message.isRecv}
-          regenerateAnswer={regenerateAnswer}
-        />
-      ))}
+    <ScrollArea className="flex-1">
+      <div className="divide-y divide-gray-100">
+        {messages.map((message) => (
+          <MessageItem
+            message={message}
+            key={message.id}
+            reverse={!message.isRecv}
+            regenerateAnswer={regenerateAnswer}
+          />
+        ))}
+      </div>
       <div id="message-list-btm" className="h-px"></div>
     </ScrollArea>
   );

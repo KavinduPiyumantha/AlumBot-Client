@@ -1,10 +1,9 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Loader2, Terminal } from "lucide-react";
-import { CornersIcon, Cross1Icon, EraserIcon } from "@radix-ui/react-icons";
+import { Cross1Icon, EraserIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import "./App.css";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
-import { Separator } from "./components/ui/separator";
 import { getBotSettings, getUserToken, requestQA } from "./api";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import {
@@ -36,7 +35,7 @@ const initialMessage = {
   timestamp: Date.now(),
 };
 
-const DefaultName = "OpenKF ChatBot";
+const DefaultName = "AlumBot";
 
 function App() {
   const [historyMessages, setHistoryMessages] = React.useState(
@@ -204,7 +203,7 @@ function App() {
 
   const toogleSize = () => fireToParent("toogleSize");
 
-  const fireToParent = (event: string, data?: any) => {
+  const fireToParent = (event: string, data?: unknown) => {
     window.parent.postMessage({ event, data }, "*");
   };
 
@@ -253,40 +252,39 @@ function App() {
   const botName = config?.bot_name || DefaultName;
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-white text-gray-800">
       {/* header */}
-      <div className="p-3 flex justify-between items-center">
+      <div className="p-4 flex justify-between items-center border-b border-gray-200">
         <div className="flex items-center">
-          <Avatar className="mr-3">
+          <Avatar className="mr-3 h-8 w-8">
             <AvatarImage src={config?.bot_avatar} alt={botName} />
-            <AvatarFallback>{botName}</AvatarFallback>
+            <AvatarFallback className="bg-emerald-600 text-white text-sm">{botName.substring(0, 2)}</AvatarFallback>
           </Avatar>
-          <div>{botName}</div>
+          <div className="font-semibold">{botName}</div>
         </div>
-        <div className="flex space-x-2">
-          <EraserIcon
-            className="w-5 h-5 cursor-pointer"
+        <div className="flex space-x-3">
+          <button 
+            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500" 
+            title="Clear conversation"
             onClick={clearMessages}
-          />
-          {!isMinScreen && (
-            <CornersIcon
-              className="w-5 h-5 cursor-pointer"
-              onClick={toogleSize}
-            />
-          )}
-          <Cross1Icon
-            className="w-5 h-5 cursor-pointer"
+          >
+            <EraserIcon className="w-5 h-5" />
+          </button>
+          <button 
+            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500" 
+            title="Close"
             onClick={closeIframe}
-          />
+          >
+            <Cross1Icon className="w-5 h-5" />
+          </button>
         </div>
       </div>
-      <Separator />
 
       {/* main content */}
       {loading ? (
         <div className="flex-1 flex justify-center items-center">
           {withError ? (
-            <Alert>
+            <Alert className="max-w-md">
               <Terminal className="h-4 w-4" />
               <AlertTitle>Connection failed</AlertTitle>
               <AlertDescription>
@@ -294,11 +292,19 @@ function App() {
               </AlertDescription>
             </Alert>
           ) : (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span className="text-gray-400">loading...</span>
-            </>
+            <div className="flex items-center text-gray-500">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              <span>Loading...</span>
+            </div>
           )}
+        </div>
+      ) : historyMessages.length === 0 ? (
+        <div className="flex-1 flex flex-col justify-center items-center text-center p-8">
+          <MagnifyingGlassIcon className="w-12 h-12 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">How can I help you today?</h2>
+          <p className="text-gray-500 max-w-md mb-6">
+            Ask me anything or use one of the suggested prompts below.
+          </p>
         </div>
       ) : (
         <MessageList
@@ -306,18 +312,20 @@ function App() {
           regenerateAnswer={regenerateAnswer}
         />
       )}
-      <SuggestionBar
-        wating={wating}
-        messages={config?.suggested_messages}
-        sendQuestion={sendQuestion}
-      />
-      <Separator />
-      <InputBar
-        loading={loading}
-        wating={wating}
-        placeholder={config?.placeholder}
-        sendQuestion={sendQuestion}
-      />
+      
+      <div className="p-4">
+        <SuggestionBar
+          wating={wating}
+          messages={config?.suggested_messages}
+          sendQuestion={sendQuestion}
+        />
+        <InputBar
+          loading={loading}
+          wating={wating}
+          placeholder={config?.placeholder}
+          sendQuestion={sendQuestion}
+        />
+      </div>
     </div>
   );
 }
