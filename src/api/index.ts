@@ -5,7 +5,7 @@ const baseUrl = import.meta.env.VITE_BASE_URL || origin;
 export const getUserToken = (
   user_id: string
 ): Promise<API.BaseResopnse<{ token: string }>> =>
-  fetch(`${baseUrl}/open_kf_api/auth/get_token`, {
+  fetch(`${baseUrl}/alumBot_api/auth/get_token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -32,7 +32,7 @@ export const requestQA = async ({
 }: RequestQAParams) => {
   try {
     const response = await fetch(
-      `${baseUrl}/open_kf_api/queries/smart_query_stream`,
+      `${baseUrl}/alumBot_api/queries/smart_query_stream`,
       {
         method: "POST",
         headers: {
@@ -65,6 +65,6 @@ export const requestQA = async ({
 export const getBotSettings = (): Promise<
   API.BaseResopnse<API.GetBotSettingsData>
 > =>
-  fetch(`${baseUrl}/open_kf_api/bot_config/get_bot_setting`, {
+  fetch(`${baseUrl}/alumBot_api/bot_config/get_bot_setting`, {
     method: "POST",
   }).then((res) => res.json());
