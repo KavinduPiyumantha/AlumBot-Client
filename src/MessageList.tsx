@@ -54,6 +54,17 @@ const MessageItem = ({
   const isPending = message.status === "pending";
   const showMessageActions = !isPending && message.isRecv && !message.isInitial;
 
+  // Remove Sources section completely
+  const cleanContent = React.useMemo(() => {
+    if (!message.isRecv) return message.content;
+    
+    // Check for Sources section and remove it
+    const content = message.content.replace(/\*\*Sources\*\*:[\s\S]*?(?=\n\n|$)/, "");
+    
+    // Clean up any trailing whitespace or double line breaks
+    return content.replace(/\n{3,}/g, "\n\n").trim();
+  }, [message.content, message.isRecv]);
+
   const copyAnswer = () => {
     copyToClipboard(message.content);
     setCopyLoading(true);
@@ -95,7 +106,7 @@ const MessageItem = ({
                   </a>
                 ),
               }}
-              source={encodeSpacesInMarkdownLinks(message.content)}
+              source={encodeSpacesInMarkdownLinks(cleanContent)}
             />
           </div>
 
