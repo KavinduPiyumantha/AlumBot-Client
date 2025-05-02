@@ -1,7 +1,7 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Loader2, Terminal } from "lucide-react";
-import { Cross1Icon, EraserIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { EraserIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import "./App.css";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import { getBotSettings, getUserToken, requestQA } from "./api";
@@ -197,8 +197,6 @@ function App() {
     }, 50);
   };
 
-  const closeIframe = () => fireToParent("closeIframe");
-
   const fireToParent = (event: string, data?: unknown) => {
     window.parent.postMessage({ event, data }, "*");
   };
@@ -260,19 +258,19 @@ function App() {
         </div>
         <div className="flex space-x-3">
           <button
-            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-100"
+            className="p-1.5 rounded-md hover:bg-gray-100/20 text-gray-300"
             title="Clear conversation"
             onClick={clearMessages}
           >
             <EraserIcon className="w-5 h-5" />
           </button>
-          <button
-            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-100"
+          {/* <button
+            className="p-1.5 rounded-md hover:bg-gray-100/20 text-gray-200"
             title="Close"
             onClick={closeIframe}
           >
             <Cross1Icon className="w-5 h-5" />
-          </button>
+          </button> */}
         </div>
       </div>
 
