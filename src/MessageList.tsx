@@ -9,7 +9,6 @@ import {
 } from "@radix-ui/react-icons";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { cn, copyToClipboard } from "./utils/common";
-import { Avatar, AvatarFallback } from "./components/ui/avatar";
 
 dayjs.extend(relativeTime);
 
@@ -22,17 +21,6 @@ export interface IMessageItem {
   isInitial?: boolean;
   timestamp: number;
 }
-
-const extractIfHasExtension = (url: string) => {
-  const extensionRegex = /\.\w+$/;
-  if (url.match(extensionRegex)) {
-    const lastSlashIndex = url.lastIndexOf("/");
-    if (lastSlashIndex !== -1) {
-      return url.substring(lastSlashIndex + 1);
-    }
-  }
-  return url;
-};
 
 const encodeSpacesInMarkdownLinks = (markdown: string) => {
   return markdown.replace(/\[([^\]]+)\]\((.*?)\)/g, (_, text, url) => {
@@ -54,13 +42,19 @@ const MessageItem = ({
   const isPending = message.status === "pending";
   const showMessageActions = !isPending && message.isRecv && !message.isInitial;
 
-  // Remove Sources section completely
+  // Remove Sources section completely including headings and links section
   const cleanContent = React.useMemo(() => {
     if (!message.isRecv) return message.content;
-    
-    // Check for Sources section and remove it
-    const content = message.content.replace(/\*\*Sources\*\*:[\s\S]*?(?=\n\n|$)/, "");
-    
+
+    // Check for Sources section with different possible formats
+    const content = message.content
+      // Handle ### Sources format (with heading)
+      .replace(/#{1,3}\s*Sources:?[\s\S]*?(?=\n\n|$)/i, "")
+      // Handle **Sources** format (with bold)
+      .replace(/\*\*Sources\*\*:?[\s\S]*?(?=\n\n|$)/i, "")
+      // Handle Sources: format (plain text)
+      .replace(/Sources:[\s\S]*?(?=\n\n|$)/i, "");
+
     // Clean up any trailing whitespace or double line breaks
     return content.replace(/\n{3,}/g, "\n\n").trim();
   }, [message.content, message.isRecv]);
@@ -77,21 +71,17 @@ const MessageItem = ({
     <div
       id={`msg_${message.id}`}
       className={cn(
-        "px-4 py-6 group",
-        reverse ? "user-message" : "assistant-message"
+        "w-full px-4 py-2 group mb-1 flex",
+        reverse ? "justify-end" : "justify-start"
       )}
     >
-      <div className="chat-container flex gap-4">
-        {!reverse && (
-          <div className="flex-shrink-0">
-            <Avatar className="h-8 w-8 assistant-avatar">
-              <AvatarFallback>A</AvatarFallback>
-            </Avatar>
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
+      <div className={cn(
+        "message-container",
+        reverse ? "user-message" : "assistant-message"
+      )}>
+        <div className="message-body">
           <div className={cn(
-            "prose prose-slate max-w-none",
+            "prose prose-slate",
             isPending && "opacity-70"
           )}>
             <MarkdownPreview
@@ -110,24 +100,7 @@ const MessageItem = ({
             />
           </div>
 
-          {!!message.links.length && (
-            <div className="mt-4 border-t border-gray-200 pt-3">
-              <p className="text-sm text-gray-500 mb-2">Source links:</p>
-              <div className="flex flex-wrap gap-2">
-                {message.links.map((link) => (
-                  <a
-                    className="px-3 py-1.5 border rounded-full text-sm border-gray-300 bg-white hover:bg-gray-50 cursor-pointer truncate max-w-full"
-                    title={link}
-                    href={link}
-                    key={link}
-                    target="_blank"
-                  >
-                    {extractIfHasExtension(link)}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Removed the links display section */}
 
           {isPending && (
             <div className="loading mt-2">
@@ -138,14 +111,17 @@ const MessageItem = ({
           )}
 
           {showMessageActions && (
-            <div className="flex space-x-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className={cn(
+              "flex space-x-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity",
+              reverse ? "justify-end" : "justify-start"
+            )}>
               {copyLoading ? (
                 <button className="flex items-center text-xs text-gray-600 px-2 py-1 rounded hover:bg-gray-100">
                   <CheckIcon className="mr-1 h-3 w-3" />
                   Copied!
                 </button>
               ) : (
-                <button 
+                <button
                   className="flex items-center text-xs text-gray-600 px-2 py-1 rounded hover:bg-gray-100"
                   onClick={copyAnswer}
                 >
@@ -154,7 +130,7 @@ const MessageItem = ({
                 </button>
               )}
 
-              <button 
+              <button
                 className="flex items-center text-xs text-gray-600 px-2 py-1 rounded hover:bg-gray-100"
                 onClick={() => regenerateAnswer(message.id)}
               >
@@ -164,13 +140,6 @@ const MessageItem = ({
             </div>
           )}
         </div>
-        {reverse && (
-          <div className="flex-shrink-0">
-            <Avatar className="h-8 w-8 user-avatar">
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -185,15 +154,17 @@ const MessageList = ({
 }) => {
   return (
     <ScrollArea className="flex-1">
-      <div className="divide-y divide-gray-100">
-        {messages.map((message) => (
-          <MessageItem
-            message={message}
-            key={message.id}
-            reverse={!message.isRecv}
-            regenerateAnswer={regenerateAnswer}
-          />
-        ))}
+      <div className="flex flex-col items-center py-2">
+        <div className="w-full max-w-[800px] mx-auto px-4">
+          {messages.map((message) => (
+            <MessageItem
+              message={message}
+              key={message.id}
+              reverse={!message.isRecv}
+              regenerateAnswer={regenerateAnswer}
+            />
+          ))}
+        </div>
       </div>
       <div id="message-list-btm" className="h-px"></div>
     </ScrollArea>

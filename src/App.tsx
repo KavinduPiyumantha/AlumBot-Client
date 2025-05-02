@@ -43,7 +43,6 @@ function App() {
   );
   const [loading, setLoading] = React.useState(false);
   const [wating, setWating] = React.useState(false);
-  const [isMinScreen, setIsMinScreen] = React.useState(false);
   const [config, setConfig] = React.useState<API.BotSettings>();
   const [withError, setWithError] = React.useState(false);
   const needInitialMessag = React.useRef(true);
@@ -64,7 +63,6 @@ function App() {
 
     window.addEventListener("message", (evt) => {
       if (evt.data.event === "openIframe") {
-        setIsMinScreen(evt.data.data);
         scrollToBottom("instant");
         if (
           latestConfig.current?.initial_messages.length &&
@@ -86,7 +84,7 @@ function App() {
         needInitialMessag.current = false;
       }
       if (evt.data.event === "resizeIframe") {
-        setIsMinScreen(evt.data.data);
+        // Removed setIsMinScreen since we no longer use isMinScreen
       }
     });
     window.addEventListener("beforeunload", () => {
@@ -201,8 +199,6 @@ function App() {
 
   const closeIframe = () => fireToParent("closeIframe");
 
-  const toogleSize = () => fireToParent("toogleSize");
-
   const fireToParent = (event: string, data?: unknown) => {
     window.parent.postMessage({ event, data }, "*");
   };
@@ -252,7 +248,7 @@ function App() {
   const botName = config?.bot_name || DefaultName;
 
   return (
-    <div className="h-screen flex flex-col bg-white text-gray-800">
+    <div className="h-screen flex flex-col bg-transparent text-gray-100">
       {/* header */}
       <div className="p-4 flex justify-between items-center border-b border-gray-200">
         <div className="flex items-center">
@@ -263,15 +259,15 @@ function App() {
           <div className="font-semibold">{botName}</div>
         </div>
         <div className="flex space-x-3">
-          <button 
-            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500" 
+          <button
+            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-100"
             title="Clear conversation"
             onClick={clearMessages}
           >
             <EraserIcon className="w-5 h-5" />
           </button>
-          <button 
-            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500" 
+          <button
+            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-100"
             title="Close"
             onClick={closeIframe}
           >
@@ -300,9 +296,9 @@ function App() {
         </div>
       ) : historyMessages.length === 0 ? (
         <div className="flex-1 flex flex-col justify-center items-center text-center p-8">
-          <MagnifyingGlassIcon className="w-12 h-12 text-gray-400 mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">How can I help you today?</h2>
-          <p className="text-gray-500 max-w-md mb-6">
+          <MagnifyingGlassIcon className="w-12 h-12 text-white mb-4" />
+          <h2 className="text-2xl text-gray-100 font-semibold mb-2">How can I help you today?</h2>
+          <p className="text-gray-50 max-w-md mb-6">
             Ask me anything or use one of the suggested prompts below.
           </p>
         </div>
@@ -312,8 +308,8 @@ function App() {
           regenerateAnswer={regenerateAnswer}
         />
       )}
-      
-      <div className="p-4">
+
+      <div className=" max-w-[800px] mx-auto w-full flex flex-col">
         <SuggestionBar
           wating={wating}
           messages={config?.suggested_messages}

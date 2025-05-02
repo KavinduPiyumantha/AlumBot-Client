@@ -60,3 +60,130 @@
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+/* Brushed metal background style */
+body {
+  background-image: url('/aluminium-pictures.jpg') !important;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2); /* Dark overlay to improve text visibility */
+  z-index: -1;
+}
+
+/* Message container - to match screenshot */
+.message-container {
+  display: inline-block;
+  max-width: 85%;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* User message styling */
+.user-message {
+  background-color: rgba(219, 234, 254, 0.95);
+  text-align: right;
+}
+
+/* Assistant message styling */
+.assistant-message {
+  background-color: rgba(255, 255, 255, 0.95);
+  text-align: left;
+}
+
+/* More specific selector to increase specificity */
+div.message-container.user-message {
+  background-color: #bbdcf7 !important;
+  color: white !important;
+}
+
+/* Message body styling */
+.message-body {
+  padding: 0.5rem 1rem;
+  width: 100%;
+}
+
+/* List styling to match screenshot */
+.prose ul {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+}
+
+.prose ol {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+}
+
+.prose li {
+  margin-bottom: 0.25rem;
+}
+
+/* Style for the heading and text to match screenshot */
+.prose h1, .prose h2, .prose h3 {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Specific styling for circular bullet points as shown in screenshot */
+.prose ul li::marker {
+  content: "○ ";
+}
+
+/* Style for the header */
+header, .p-4.flex.justify-between.items-center {
+  background-color: rgba(240, 240, 240, 0.253);
+  backdrop-filter: blur(5px);
+  border-bottom: 1px solid rgba(200, 200, 200, 0.8);
+}
+
+
+/* Make text in messages more visible */
+.prose {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* Chat container styling */
+.chat-container {
+  width: 100%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Adding metal rivets to the corners of the interface */
+.h-screen.flex.flex-col::before,
+.h-screen.flex.flex-col::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, #DDD 0%, #AAA 50%, #888 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.8);
+}
+
+.h-screen.flex.flex-col::before {
+  top: 10px;
+  left: 10px;
+}
+
+.h-screen.flex.flex-col::after {
+  top: 10px;
+  right: 10px;
+}
+
+Improve spacing between message groups
+.w-full.px-4.py-6.group.mb-4 {
+  margin-bottom: 12px;
+}

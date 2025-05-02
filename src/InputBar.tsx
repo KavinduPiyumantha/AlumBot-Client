@@ -51,10 +51,10 @@ const InputBar = ({
   };
 
   return (
-    <div className="w-full mt-2 chat-container mx-auto">
-      <div className="flex w-full items-end border border-gray-300 rounded-lg bg-white overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
+    <div className="w-full chat-container mx-auto">
+      <div className="flex w-full items-end border border-gray-300 rounded-lg bg-white overflow-hidden shadow-sm focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
         <Textarea
-          className="flex-1 py-3 px-4 max-h-[200px] min-h-[50px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-white"
+          className="flex-1 py-3 px-4 max-h-[200px] min-h-[50px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-white text-gray-800 placeholder:text-gray-500"
           ref={textareaRef}
           value={inputValue}
           placeholder={placeholder || "Message AlumBot..."}
@@ -79,7 +79,7 @@ const InputBar = ({
           </button>
         </div>
       </div>
-      <p className="text-xs text-center text-gray-500 mt-2">
+      <p className="text-xs text-center text-gray-100 mt-2">
         AlumBot can make mistakes. Consider checking important information.
       </p>
     </div>
