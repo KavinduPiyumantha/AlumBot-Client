@@ -294,11 +294,16 @@ function App() {
         </div>
       ) : historyMessages.length === 0 ? (
         <div className="flex-1 flex flex-col justify-center items-center text-center p-8">
-          <MagnifyingGlassIcon className="w-12 h-12 text-white mb-4" />
-          <h2 className="text-2xl text-gray-100 font-semibold mb-2">How can I help you today?</h2>
-          <p className="text-gray-50 max-w-md mb-6">
+          <MagnifyingGlassIcon className="w-16 h-16 text-white mb-4 drop-shadow-lg" />
+          <h2 className="text-3xl text-white font-bold mb-3 drop-shadow-md">How can I help you today?</h2>
+          <p className="text-white text-lg max-w-md mb-5">
             Ask me anything or use one of the suggested prompts below.
           </p>
+          <div className="text-white max-w-md mb-6 border-t border-gray-400 pt-5 mt-2">
+            <p className="text-lg mb-2 italic font-light">Research Project:</p>
+            <p className=" text-xl mb-2">Developing an AI-based Aluminum Door and Window Frame profile selection tool</p>
+            <p className="text-base">By W.A.Thisara Anuhas</p>
+          </div>
         </div>
       ) : (
         <MessageList
