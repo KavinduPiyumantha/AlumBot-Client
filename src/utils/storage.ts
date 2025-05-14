@@ -12,3 +12,10 @@ export const getHistoryMessage = () =>
   ) as IMessageItem[];
 export const clearHistoryMessage = () =>
   localStorage.removeItem("tmp_user_history_message");
+
+// Authentication functions
+export const saveAuthToken = (token: string) =>
+  localStorage.setItem("alumbot_auth_token", token);
+export const getAuthToken = () => localStorage.getItem("alumbot_auth_token");
+export const removeAuthToken = () => localStorage.removeItem("alumbot_auth_token");
+export const isLoggedIn = () => !!getAuthToken();

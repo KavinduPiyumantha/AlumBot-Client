@@ -1,6 +1,6 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Loader2, Terminal } from "lucide-react";
+import { Loader2, Terminal, LogOut } from "lucide-react";
 import { EraserIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import "./App.css";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
@@ -11,11 +11,12 @@ import {
   getHistoryMessage,
   getUserID,
   saveHistoryMessage,
-  saveUserID,
+  saveUserID
 } from "./utils/storage";
 import MessageList, { IMessageItem } from "./MessageList";
 import InputBar from "./InputBar";
 import SuggestionBar from "./SuggestionBar";
+import Login from "./components/Login";
 
 const pendingMessage = {
   id: "pending_id",
@@ -37,6 +38,13 @@ const initialMessage = {
 
 const DefaultName = "AlumBot";
 
+// Authentication utility functions
+const saveAuthToken = (token: string) =>
+  localStorage.setItem("alumbot_auth_token", token);
+const getAuthToken = () => localStorage.getItem("alumbot_auth_token");
+const removeAuthToken = () => localStorage.removeItem("alumbot_auth_token");
+const isLoggedIn = () => !!getAuthToken();
+
 function App() {
   const [historyMessages, setHistoryMessages] = React.useState(
     [] as IMessageItem[]
@@ -45,21 +53,65 @@ function App() {
   const [wating, setWating] = React.useState(false);
   const [config, setConfig] = React.useState<API.BotSettings>();
   const [withError, setWithError] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(isLoggedIn());
   const needInitialMessag = React.useRef(true);
   const latestConfig = React.useRef<API.BotSettings | undefined>(config);
   const currentUser = React.useRef(getUserID());
-  const authToken = React.useRef("");
+  const authToken = React.useRef(getAuthToken() || "");
   const controller = React.useRef(new AbortController());
 
-  latestConfig.current = config;
+  latestConfig.current = config; const fireToParent = React.useCallback((event: string, data?: unknown) => {
+    window.parent.postMessage({ event, data }, "*");
+  }, []);
 
-  React.useEffect(() => {
-    if (!currentUser.current) {
-      currentUser.current = uuidv4();
-      saveUserID(currentUser.current);
+  const getConfig = React.useCallback(() => {
+    getBotSettings().then(({ data }) => {
+      setConfig(data.config);
+      fireToParent("getConfig", data.config.chat_icon);
+    });
+  }, [fireToParent]);
+
+  // Make init a callback that doesn't need to be a dependency
+  const initApp = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      // If we already have a token stored, use it
+      if (authToken.current) {
+        getConfig();
+      } else {
+        // Otherwise get a token using the user ID
+        const {
+          data: { token },
+        } = await getUserToken(currentUser.current!);
+        authToken.current = token;
+        getConfig();
+      }
+    } catch (error) {
+      setWithError(true);
+      return;
     }
+    const msgs = getHistoryMessage().filter((msg) => msg.status !== "pending");
+    setHistoryMessages(msgs);
+    setLoading(false);
+  }, [getConfig]);
 
-    init();
+  // Initialize the component
+  React.useEffect(() => {
+    const setupInitialState = async () => {
+      if (!currentUser.current) {
+        currentUser.current = uuidv4();
+        saveUserID(currentUser.current);
+      }
+
+      // If there's an auth token stored, assume we're authenticated
+      if (authToken.current) {
+        setIsAuthenticated(true);
+      }
+
+      await initApp();
+    };
+
+    setupInitialState();
 
     window.addEventListener("message", (evt) => {
       if (evt.data.event === "openIframe") {
@@ -95,30 +147,19 @@ function App() {
         return msgs;
       });
     });
-  }, []);
+  }, [initApp]);
 
-  const init = async () => {
-    setLoading(true);
-    try {
-      const {
-        data: { token },
-      } = await getUserToken(currentUser.current!);
-      authToken.current = token;
-      getConfig();
-    } catch (error) {
-      setWithError(true);
-      return;
-    }
-    const msgs = getHistoryMessage().filter((msg) => msg.status !== "pending");
-    setHistoryMessages(msgs);
-    setLoading(false);
+  const handleLoginSuccess = (token: string) => {
+    authToken.current = token;
+    saveAuthToken(token);
+    setIsAuthenticated(true);
+    initApp();
   };
-
-  const getConfig = () => {
-    getBotSettings().then(({ data }) => {
-      setConfig(data.config);
-      fireToParent("getConfig", data.config.chat_icon);
-    });
+  const handleLogout = () => {
+    authToken.current = "";
+    removeAuthToken();
+    setIsAuthenticated(false);
+    setHistoryMessages([]);
   };
 
   const handleNewData = (streamString: string) => {
@@ -187,7 +228,6 @@ function App() {
       scrollToBottom("smooth");
     }
   };
-
   const scrollToBottom = (behavior: ScrollBehavior) => {
     setTimeout(() => {
       const lastEl = document.getElementById("message-list-btm");
@@ -195,10 +235,6 @@ function App() {
         lastEl.scrollIntoView({ behavior });
       }
     }, 50);
-  };
-
-  const fireToParent = (event: string, data?: unknown) => {
-    window.parent.postMessage({ event, data }, "*");
   };
 
   const clearMessages = () => {
@@ -244,6 +280,10 @@ function App() {
   };
 
   const botName = config?.bot_name || DefaultName;
+  // If not authenticated, show login screen
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-transparent text-gray-100">
@@ -263,6 +303,13 @@ function App() {
             onClick={clearMessages}
           >
             <EraserIcon className="w-5 h-5" />
+          </button>
+          <button
+            className="p-1.5 rounded-md hover:bg-gray-100/20 text-gray-300"
+            title="Logout"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-5 h-5" />
           </button>
           {/* <button
             className="p-1.5 rounded-md hover:bg-gray-100/20 text-gray-200"

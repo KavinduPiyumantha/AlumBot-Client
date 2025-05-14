@@ -15,6 +15,21 @@ export const getUserToken = (
     }),
   }).then((res) => res.json());
 
+export const loginUser = (
+  account_name: string, 
+  password: string
+): Promise<API.BaseResopnse<{ token: string }>> =>
+  fetch(`${baseUrl}/alumBot_api/account/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      account_name,
+      password,
+    }),
+  }).then((res) => res.json());
+
 interface RequestQAParams {
   query: string;
   user_id: string;
